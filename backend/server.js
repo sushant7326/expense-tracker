@@ -19,13 +19,15 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const saltRounds = 10;
 app.post("/adduser", async (req, res) => {
   const { username, password } = req.body;
   console.log(username, password);
 
   try {
-    const password_hash = await bcrypt.hash(password, saltRounds);
+    const password_hash = await bcrypt.hash(
+      password,
+      parseInt(process.env.SALT_ROUNDS)
+    );
     try {
       const result = await db.pool.query(
         "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING *",
@@ -48,18 +50,45 @@ app.post("/adduser", async (req, res) => {
 });
 
 app.get("/listusers", async (req, res) => {
+  try {
+    const result = await db.pool.query("SELECT * FROM users");
+    res.status(200).json({
+      status: "success",
+      data: result.rows,
+    });
+  } catch (error) {
+    console.error("Error listing users: ", error.message);
+    res.status(500).json({ error: "Failed to list users" });
+  }
+});
+
+app.put("/updatepassword/:id", async (req, res) => {
+  const { id } = req.params;
+  const { password } = req.body;
+  try {
+    const password_hash = await bcrypt.hash(
+      password,
+      parseInt(process.env.SALT_ROUNDS)
+    );
     try {
-      const result = await db.pool.query("SELECT * FROM users");
+      const result = await db.pool.query(
+        "UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING *",
+        [password_hash, id]
+      );
       res.status(200).json({
         status: "success",
-        data: result.rows,
+        data: result.rows[0],
       });
     } catch (error) {
-      console.error("Error listing users: ", error.message);
-      res.status(500).json({ error: "Failed to list users" });
+      console.error("Error updating password: ", error.message);
+      res.status(500).json({ error: "Failed to update password" });
     }
-  });
-  
+  } catch (error) {
+    console.error("Error hashing password: ", error.message);
+    res.status(500).json({ error: "Failed to hash password" });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   console.log(req.params);
