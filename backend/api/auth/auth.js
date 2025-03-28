@@ -38,4 +38,30 @@ router.post("/register", async (req, res) => {
   }
 });
 
+router.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const user = await db.pool.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username]
+    );
+    if (user.rows.lenght === 0)
+      return res.status(401).json({ error: "Invalid username" });
+    try {
+      const is_valid = await bcrypt.compare(
+        password,
+        user.rows[0].password_hash
+      );
+      if (!is_valid)
+        return res.status(401).json({ error: "Invalid username or password!" });
+    } catch (error) {
+      console.error("Error in comparing hashed password", error.message);
+      res.status(500).json({ error: "Error in comparing hashed password" });
+    }
+  } catch (error) {
+    console.error("Error in query fiding user: ", error.message);
+    res.status(500).json({ error: "Error running in psql query" });
+  }
+});
+
 module.exports = router;
