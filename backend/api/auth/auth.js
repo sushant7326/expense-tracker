@@ -7,7 +7,8 @@ require("dotenv").config();
 
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
-const authenticateToken = require("./authenticateToken")
+const authenticateToken = require("./authenticateToken");
+
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
@@ -82,13 +83,13 @@ router.put("/change-password", authenticateToken, async (req, res) => {
       parseInt(process.env.SALT_ROUNDS)
     );
     try {
-      const result = db.pool.query(
+      await db.pool.query(
         "UPDATE users SET password_hash = $1 WHERE user_id = $2",
         [new_password_hashed, req.user_id]
       );
       res.json({
         status: "success",
-        message: "Password updated successfully"
+        message: "Password updated successfully",
       });
     } catch (error) {
       console.error("Error updating password into database");
@@ -97,6 +98,46 @@ router.put("/change-password", authenticateToken, async (req, res) => {
   } catch (error) {
     console.error("Error hashing new password", error.message);
     res.status(500).json({ error: "Error hashing new password" });
+  }
+});
+
+router.delete("/delete-user", authenticateToken, async (req, res) => {
+  const { password } = req.body;
+  const user_id = req.user_id;
+  console.log(user_id);
+  try {
+    const response = await db.pool.query(
+      "SELECT password_hash FROM users WHERE user_id = $1",
+      [user_id]
+    );
+    const hashed_password = response.rows[0].password_hash;
+    try {
+      const is_valid = await bcrypt.compare(password, hashed_password);
+      if (!is_valid) return res.status(401).json({ error: "Invalid Password" });
+      try {
+        await db.pool.query(
+          "DELETE FROM users WHERE user_id = $1",
+          [user_id]
+        );
+        return res.status(200).json({
+          status: "success",
+          message: `User ${user_id} deleted successfully`,
+        });
+      } catch (error) {
+        console.error("Error deleting user row from databsae");
+        res.status(500).json("Error deleting user row from database");
+      }
+    } catch (error) {
+      console.error("Error comparing password with database entry");
+      res
+        .status(500)
+        .json({ error: "Error comparing password with database entry" });
+    }
+  } catch (error) {
+    console.error("Error fetching password from database");
+    res
+      .status(500)
+      .json({ error: "Error fetching password from database" });
   }
 });
 
