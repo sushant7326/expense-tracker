@@ -54,6 +54,11 @@ router.post("/login", async (req, res) => {
       );
       if (!is_valid)
         return res.status(401).json({ error: "Invalid username or password!" });
+
+      res.status(200).json({
+        status: "sucess",
+        message: "Logged in successfully",
+      });
     } catch (error) {
       console.error("Error in comparing hashed password", error.message);
       res.status(500).json({ error: "Error in comparing hashed password" });
