@@ -43,4 +43,19 @@ router.post("/add", authenticateToken, async (req, res) => {
   });
 });
 
+router.delete("/delete", authenticateToken, async (req, res) => {
+  const { transaction_id } = req.body;
+  try {
+    await db.pool.query("DELETE FROM transactions WHERE transaction_id = $1", [
+      transaction_id,
+    ]);
+    res
+      .status(200)
+      .json({ status: "success", message: "Transaction deleted successfully" });
+  } catch (error) {
+    console.log("Error making database query");
+    res.status(500).json({ error: "Error making database query" });
+  }
+});
+
 module.exports = router;
