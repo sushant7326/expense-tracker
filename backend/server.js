@@ -24,33 +24,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 
-app.put("/updatepassword/:id", async (req, res) => {
-  const { id } = req.params;
-  const { password } = req.body;
-  try {
-    const password_hash = await bcrypt.hash(
-      password,
-      parseInt(process.env.SALT_ROUNDS)
-    );
-    try {
-      const result = await db.pool.query(
-        "UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING *",
-        [password_hash, id]
-      );
-      res.status(200).json({
-        status: "success",
-        data: result.rows[0],
-      });
-    } catch (error) {
-      console.error("Error updating password: ", error.message);
-      res.status(500).json({ error: "Failed to update password" });
-    }
-  } catch (error) {
-    console.error("Error hashing password: ", error.message);
-    res.status(500).json({ error: "Failed to hash password" });
-  }
-});
-
 app.delete("/deleteuser/:id", async (req, res) => {
   const { id } = req.params;
   try {

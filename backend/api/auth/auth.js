@@ -7,7 +7,7 @@ require("dotenv").config();
 
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
-
+const authenticateToken = require("./authenticateToken")
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
@@ -71,6 +71,32 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.error("Error in query fiding user: ", error.message);
     res.status(500).json({ error: "Error running in psql query" });
+  }
+});
+
+router.put("/change-password", authenticateToken, async (req, res) => {
+  const { new_password } = req.body;
+  try {
+    const new_password_hashed = await bcrypt.hash(
+      new_password,
+      parseInt(process.env.SALT_ROUNDS)
+    );
+    try {
+      const result = db.pool.query(
+        "UPDATE users SET password_hash = $1 WHERE user_id = $2",
+        [new_password_hashed, req.user_id]
+      );
+      res.json({
+        status: "success",
+        message: "Password updated successfully"
+      });
+    } catch (error) {
+      console.error("Error updating password into database");
+      res.status(500).json({ error: "Error updating password to database" });
+    }
+  } catch (error) {
+    console.error("Error hashing new password", error.message);
+    res.status(500).json({ error: "Error hashing new password" });
   }
 });
 
