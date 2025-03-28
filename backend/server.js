@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 require("dotenv").config({ path: "../.env" });
 
 const userRoutes = require("./api/users/users");
+const authRoutes = require("./api/auth/auth");
 const db = require("./postgres-config");
 const app = express();
 const PORT = process.env.BE_PORT;
@@ -20,37 +21,8 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post("/adduser", async (req, res) => {
-  const { username, password } = req.body;
-  console.log(username, password);
-
-  try {
-    const password_hash = await bcrypt.hash(
-      password,
-      parseInt(process.env.SALT_ROUNDS)
-    );
-    try {
-      const result = await db.pool.query(
-        "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING *",
-        [username, password_hash]
-      );
-      res.status(201).json({
-        status: "success",
-        data: result.rows[0],
-      });
-    } catch (error) {
-      if (error.code === "23505")
-        return res.status(409).json({ error: "User already exists" });
-      console.error("Error creating user: ", error.message);
-      res.status(500).json({ error: "Failed to create user" });
-    }
-  } catch (error) {
-    console.error("Error hashing password: ", error.message);
-    res.status(500).json({ error: "Failed to hash password" });
-  }
-});
-
 app.use("/users", userRoutes);
+app.use("/auth", authRoutes);
 
 app.put("/updatepassword/:id", async (req, res) => {
   const { id } = req.params;
