@@ -5,6 +5,8 @@ require("dotenv").config({ path: "../.env" });
 
 const userRoutes = require("./api/users/users");
 const authRoutes = require("./api/auth/auth");
+const transactionRoutes = require("./api/transactions/transactions");
+
 const app = express();
 const PORT = process.env.BE_PORT;
 
@@ -21,6 +23,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
+app.use("/transactions", transactionRoutes);
+
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
