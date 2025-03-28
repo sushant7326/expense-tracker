@@ -4,6 +4,7 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 require("dotenv").config({ path: "../.env" });
 
+const userRoutes = require("./api/users/users");
 const db = require("./postgres-config");
 const app = express();
 const PORT = process.env.BE_PORT;
@@ -49,37 +50,7 @@ app.post("/adduser", async (req, res) => {
   }
 });
 
-app.get("/listusers", async (req, res) => {
-  try {
-    const result = await db.pool.query("SELECT * FROM users");
-    res.status(200).json({
-      status: "success",
-      data: result.rows,
-    });
-  } catch (error) {
-    console.error("Error listing users: ", error.message);
-    res.status(500).json({ error: "Failed to list users" });
-  }
-});
-
-app.get("/listuser/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await db.pool.query("SELECT * FROM users WHERE id = $1", [
-      id,
-    ]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    res.status(200).json({
-      status: "success",
-      data: result.rows[0],
-    });
-  } catch (error) {
-    console.error("Error listing user: ", error.message);
-    res.status(500).json({ error: "Failed to list user" });
-  }
-});
+app.use("/users", userRoutes);
 
 app.put("/updatepassword/:id", async (req, res) => {
   const { id } = req.params;
@@ -150,9 +121,3 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-// i want to build an expense tracker application using express js and postgresql
-// i have created a database with 2 tables
-// one to list all the users and another to list all the expenses (for all users in one table, each entry contains a userid column, which references unique userid in the first table)
-
-// now, how do i go about
