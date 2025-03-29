@@ -4,6 +4,19 @@ const router = express.Router();
 
 const authenticateToken = require("../auth/authenticateToken");
 
+router.get("/", authenticateToken, async (req, res) => {
+  const user_id = req.user_id;
+  try {
+    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1", [
+      user_id,
+    ]);
+    res.status(200).json({status: "success", message: result.rows});
+  } catch (error) {
+    console.error("Error making database query");
+    res.status(500).json({ error: "Error making database query" });
+  }
+});
+
 router.post("/add", authenticateToken, async (req, res) => {
   const user_id = req.user_id;
   const {
