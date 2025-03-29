@@ -186,6 +186,66 @@ All endpoints except `/auth/register` and `/auth/login` require a valid JWT toke
 - **Error Response**:
   - `500`: Error making database query
 
+#### Get all expenses for user (expense: true)
+
+- **URL**: `/transactions/expense`
+- **Method**: `GET`
+- **Headers**: `Authorization: Bearer <token>`
+- **Success Response**:
+  ```json
+  {
+    "status": "success",
+    "message": [
+      {
+        "transaction_id": "UUID",
+        "user_id": "UUID",
+        "amount": "integer (>0)",
+        "expense": "boolean",
+        "title": "string (max 100 chars)",
+        "description": "string",
+        "category": "string (max 50 chars)",
+        "payment_method": "string (max 30 chars)",
+        "location": "string (max 100 chars)",
+        "transaction_time": "TIMESTAMP WITH TIMEZONE",
+        "created_at": "TIMESTAMP WITH TIMEZONE",
+        "updated_at": "TIMESTAMP WITH TIMEZONE"
+      }
+    ]
+  }
+  ```
+- **Error Response**:
+  - `500`: Error making database query
+
+#### Get all incomes for user (expense: false)
+
+- **URL**: `/transactions`
+- **Method**: `GET`
+- **Headers**: `Authorization: Bearer <token>`
+- **Success Response**:
+  ```json
+  {
+    "status": "success",
+    "message": [
+      {
+        "transaction_id": "UUID",
+        "user_id": "UUID",
+        "amount": "integer (>0)",
+        "expense": "boolean",
+        "title": "string (max 100 chars)",
+        "description": "string",
+        "category": "string (max 50 chars)",
+        "payment_method": "string (max 30 chars)",
+        "location": "string (max 100 chars)",
+        "transaction_time": "TIMESTAMP WITH TIMEZONE",
+        "created_at": "TIMESTAMP WITH TIMEZONE",
+        "updated_at": "TIMESTAMP WITH TIMEZONE"
+      }
+    ]
+  }
+  ```
+- **Error Response**:
+  - `500`: Error making database query
+
 #### Add a transaction
 
 - **URL**: `/transactions/add`

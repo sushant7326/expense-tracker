@@ -17,6 +17,34 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
+router.get("/expense", authenticateToken, async(req, res) =>{
+  const user_id = req.user_id;
+  try {
+    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = true", [user_id]);
+    res.status(200).json({
+      status: "success",
+      message: result.rows
+    });
+  } catch (error) {
+    console.error("Error making database call");
+    res.status(500).json({error: "Error making database call"});
+  }
+} );
+
+router.get("/income", authenticateToken, async(req, res) =>{
+  const user_id = req.user_id;
+  try {
+    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = false", [user_id]);
+    res.status(200).json({
+      status: "success",
+      message: result.rows
+    });
+  } catch (error) {
+    console.error("Error making database call");
+    res.status(500).json({error: "Error making database call"});
+  }
+} );
+
 router.post("/add", authenticateToken, async (req, res) => {
   const user_id = req.user_id;
   const {
