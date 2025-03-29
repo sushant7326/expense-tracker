@@ -6,7 +6,6 @@ const authenticateToken = require("../auth/authenticateToken");
 
 router.post("/add", authenticateToken, async (req, res) => {
   const user_id = req.user_id;
-  console.log(user_id);
   const {
     amount,
     expense,
@@ -37,10 +36,40 @@ router.post("/add", authenticateToken, async (req, res) => {
     console.error("Error making database query");
     res.status(500).json({ error: "Error making database query" });
   }
-  res.status(200).json({
-    status: "success",
-    message: "successfully accessed request body contents",
-  });
+});
+
+router.put("/update-transaction/:id", authenticateToken, async (req, res) => {
+  const { transaction_id } = req.params;
+  const {
+    amount,
+    expense,
+    title,
+    description,
+    category,
+    payment_method,
+    location,
+  } = req.body;
+  try {
+    await db.pool.query(
+      "UPDATE transactions (amount, expense, title, description, category, payment_method, location) VALUES ($1, $2, $3, $4, $5, $6, $7) WHERE transaction_id = $8 RETURNING *",
+      [
+        amount,
+        expense,
+        title,
+        description,
+        category,
+        payment_method,
+        location,
+        transaction_id,
+      ]
+    );
+    res
+      .status(200)
+      .json({ status: "success", message: "Transaction updated successfully" });
+  } catch (error) {
+    console.error("Error making database query");
+    res.status(500).json({ error: "Error making database query" });
+  }
 });
 
 router.delete("/delete", authenticateToken, async (req, res) => {
