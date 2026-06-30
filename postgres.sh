@@ -6,6 +6,10 @@ psql
 
 # or do the two steps in one simple process
 # psql -U postgres
+# postgres is the user. since its superuser, no password needed
+
+# psql -U postgres -d expense_tracker -f backend/db/schema.sql
+# run the schema once to create the necessary tables
 
 # Exit PostgreSQL Prompt
 # \q
