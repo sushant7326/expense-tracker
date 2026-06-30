@@ -74,6 +74,12 @@ router.post("/add", authenticateToken, async (req, res) => {
       .status(200)
       .json({ status: "success", message: "Transaction added successfully" });
   } catch (error) {
+    if (error.code === '23503') {
+      return res.status(400).json({
+          error: "Invalid category",
+          message: `The category provided does not exist. Please use a valid category.`
+      });
+    }
     console.error("Error making database query");
     res.status(500).json({ error: "Error making database query" });
   }
@@ -81,6 +87,7 @@ router.post("/add", authenticateToken, async (req, res) => {
 
 router.put("/update-transaction/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
+  const user_id = req.user_id;
 
   const {
     amount,
@@ -103,6 +110,7 @@ router.put("/update-transaction/:id", authenticateToken, async (req, res) => {
            payment_method = $6,
            location = $7
        WHERE transaction_id = $8
+       AND user_id = $9
        RETURNING *`,
       [
         amount,
@@ -113,6 +121,7 @@ router.put("/update-transaction/:id", authenticateToken, async (req, res) => {
         payment_method,
         location,
         id,
+        user_id
       ]
     );
 
@@ -122,6 +131,12 @@ router.put("/update-transaction/:id", authenticateToken, async (req, res) => {
       transaction: result.rows[0],
     });
   } catch (error) {
+    if (error.code === '23503') {
+      return res.status(400).json({
+          error: "Invalid category",
+          message: `The category provided does not exist. Please use a valid category.`
+      });
+    }
     console.error(error);
     res.status(500).json({ error: "Error making database query" });
   }
