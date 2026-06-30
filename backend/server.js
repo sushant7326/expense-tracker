@@ -3,9 +3,11 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config({ path: "../.env" });
 
-const userRoutes = require("./api/users/users");
-const authRoutes = require("./api/auth/auth");
+const userRoutes        = require("./api/users/users");
+const authRoutes        = require("./api/auth/auth");
 const transactionRoutes = require("./api/transactions/transactions");
+const aiRoutes          = require("./api/ai/ai");
+
 
 const app = express();
 const PORT = process.env.BE_PORT;
@@ -25,6 +27,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/transactions", transactionRoutes);
+app.use("/ai", aiRoutes);
+
 
 
 app.use((err, req, res, next) => {
