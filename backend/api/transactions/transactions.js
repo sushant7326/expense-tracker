@@ -76,8 +76,8 @@ router.post("/add", authenticateToken, async (req, res) => {
   } catch (error) {
     if (error.code === '23503') {
       return res.status(400).json({
-          error: "Invalid category",
-          message: `The category provided does not exist. Please use a valid category.`
+          error: "Invalid category  / payment method",
+          message: `The category / payment method provided does not exist. Please use a valid category.`
       });
     }
     console.error("Error making database query");
@@ -133,8 +133,8 @@ router.put("/update-transaction/:id", authenticateToken, async (req, res) => {
   } catch (error) {
     if (error.code === '23503') {
       return res.status(400).json({
-          error: "Invalid category",
-          message: `The category provided does not exist. Please use a valid category.`
+          error: "Invalid category / payment method",
+          message: `The category / payment method provided does not exist. Please use a valid category.`
       });
     }
     console.error(error);

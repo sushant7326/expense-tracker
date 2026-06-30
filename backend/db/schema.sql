@@ -11,6 +11,12 @@ CREATE TABLE categories (
 INSERT INTO categories (name) 
 VALUES ('food'), ('transport'), ('education');
 
+CREATE TABLE paymentMethods (
+    name VARCHAR(30) PRIMARY KEY
+);
+INSERT INTO paymentMethods (name)
+VALUES ('UPI'), ('Credit Card'), ('Debit Card');
+
 CREATE TABLE transactions (
     transaction_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
@@ -20,7 +26,7 @@ CREATE TABLE transactions (
     title VARCHAR(100) NOT NULL,
     description TEXT,
     category VARCHAR(50) REFERENCES categories(name) ON DELETE SET NULL ON UPDATE CASCADE,
-    payment_method VARCHAR(30),
+    payment_method VARCHAR(30) REFERENCES paymentMethods(name) ON DELETE SET NULL ON UPDATE CASCADE,
     location VARCHAR(100),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
