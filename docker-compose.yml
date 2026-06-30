@@ -1,0 +1,60 @@
+services:
+
+  # ── PostgreSQL ────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: expense_tracker_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB:       ${DB_NAME:-expense_tracker}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-expense_tracker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (Express) ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: expense_tracker_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      BE_PORT:       ${BE_PORT:-5000}
+      DB_HOST:       postgres        # Docker service name
+      DB_PORT:       ${DB_PORT:-5432}
+      DB_USER:       ${DB_USER:-postgres}
+      DB_PASSWORD:   ${DB_PASSWORD:-postgres}
+      DB_NAME:       ${DB_NAME:-expense_tracker}
+      JWT_SECRET:    ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      SALT_ROUNDS:   ${SALT_ROUNDS:-10}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    ports:
+      - "${BE_PORT:-5000}:5000"
+
+  # ── Frontend (nginx) ──────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: expense_tracker_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:

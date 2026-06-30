@@ -1,13 +1,12 @@
 const Pool = require('pg').Pool;
-require('dotenv').config({path: '../.env'});
+require('dotenv').config({ path: '../.env' });
 
-const pool = new Pool ({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'expense_tracker',
-    port: process.env.DB_PORT,
+const pool = new Pool({
+    user:     process.env.DB_USER     || 'postgres',
+    host:     process.env.DB_HOST     || 'localhost',
+    database: process.env.DB_NAME     || 'expense_tracker',
+    password: process.env.DB_PASSWORD || '',
+    port:     parseInt(process.env.DB_PORT) || 5432,
 });
 
-module.exports = {
-    pool
-};
+module.exports = { pool };
