@@ -1,7 +1,9 @@
-const express = require("express");
+const express    = require("express");
 const bodyParser = require("body-parser");
-const cors = require("cors");
+const cors       = require("cors");
+const path       = require("path");
 require("dotenv").config({ path: "../.env" });
+
 
 const userRoutes        = require("./api/users/users");
 const authRoutes        = require("./api/auth/auth");
@@ -23,6 +25,10 @@ app.use(
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// ── Serve frontend static files (local dev without Docker) ──────────────────
+app.use(express.static(path.join(__dirname, "../frontend")));
+
 
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);

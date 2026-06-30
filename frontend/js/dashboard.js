@@ -9,7 +9,8 @@ import { initAI } from './ai.js';
 import { initReports } from './reports.js';
 
 /* ── Auth guard ── */
-if (!isLoggedIn()) window.location.href = '/index.html';
+if (!isLoggedIn()) window.location.href = 'index.html';
+
 
 /* ── App State (single source of truth) ── */
 export const state = {

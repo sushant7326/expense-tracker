@@ -6,8 +6,9 @@ import { auth, setToken, setUser, isLoggedIn } from './api.js';
 
 /* Redirect if already logged in */
 if (isLoggedIn()) {
-  window.location.href = '/dashboard.html';
+  window.location.href = 'dashboard.html';
 }
+
 
 /* ── DOM References ── */
 const tabLogin    = document.getElementById('tab-login');
@@ -94,7 +95,7 @@ loginForm.addEventListener('submit', async (e) => {
     const data = await auth.login(username, password);
     setToken(data.token);
     setUser({ user_id: data.user_id, username: data.username });
-    window.location.href = '/dashboard.html';
+    window.location.href = 'dashboard.html';
   } catch (err) {
     showError(loginError, err.message || 'Login failed. Please try again.');
   } finally {
@@ -130,7 +131,8 @@ registerForm.addEventListener('submit', async (e) => {
     const loginData = await auth.login(username, password);
     setToken(loginData.token);
     setUser({ user_id: loginData.user_id, username: loginData.username });
-    window.location.href = '/dashboard.html';
+    window.location.href = 'dashboard.html';
+
   } catch (err) {
     showError(registerError, err.message || 'Registration failed. Please try again.');
   } finally {
