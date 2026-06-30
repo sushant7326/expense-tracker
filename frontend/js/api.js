@@ -18,8 +18,9 @@ export const isLoggedIn = () => !!getToken();
 export function logout() {
   removeToken();
   removeUser();
-  window.location.href = '/index.html';
+  window.location.href = 'index.html';
 }
+
 
 /* ── Core fetch wrapper ── */
 async function apiFetch(path, options = {}) {
