@@ -25,6 +25,12 @@ app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/transactions", transactionRoutes);
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Server is running!"
+  })
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
