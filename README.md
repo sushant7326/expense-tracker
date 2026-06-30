@@ -218,7 +218,7 @@ All endpoints except `/auth/register` and `/auth/login` require a valid JWT toke
 
 #### Get all incomes for user (expense: false)
 
-- **URL**: `/transactions`
+- **URL**: `/transactions/income`
 - **Method**: `GET`
 - **Headers**: `Authorization: Bearer <token>`
 - **Success Response**:
