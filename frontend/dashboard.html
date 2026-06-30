@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack — Dashboard</title>
+  <meta name="description" content="Your personal finance dashboard — track spending, visualise trends, and get AI insights." />
+
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- html2pdf (lazy-loaded when needed) -->
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+  <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="40" height="40" rx="10" fill="url(#sidebarLogoGrad)"/>
+        <path d="M12 28V18M18 28V14M24 28V20M30 28V12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="sidebarLogoGrad" x1="0" y1="0" x2="40" y2="40">
+            <stop stop-color="#7c6af7"/>
+            <stop offset="1" stop-color="#5b4ef0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span>FinTrack</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="App sections">
+      <span class="nav-section-label">Overview</span>
+      <button class="nav-item active" data-section="dashboard" id="nav-dashboard" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">📊</span>
+        Dashboard
+      </button>
+      <button class="nav-item" data-section="transactions" id="nav-transactions">
+        <span class="nav-icon" aria-hidden="true">💳</span>
+        Transactions
+      </button>
+
+      <span class="nav-section-label" style="margin-top:var(--sp-4)">Insights</span>
+      <button class="nav-item" data-section="ai" id="nav-ai">
+        <span class="nav-icon" aria-hidden="true">🤖</span>
+        AI Summary
+      </button>
+      <button class="nav-item" data-section="reports" id="nav-reports">
+        <span class="nav-icon" aria-hidden="true">📄</span>
+        Reports
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebar-avatar" aria-hidden="true">U</div>
+        <div class="user-details">
+          <div class="user-name" id="sidebar-username">User</div>
+          <div class="user-role">Personal</div>
+        </div>
+      </div>
+      <button class="logout-btn" id="logout-btn" aria-label="Log out">
+        <span aria-hidden="true">🚪</span> Log out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ════════════════════════════ MAIN CONTENT ════════════════════════════ -->
+  <div class="main-content" role="main">
+
+    <!-- Header -->
+    <header class="main-header">
+      <div>
+        <h1 id="main-heading">Dashboard</h1>
+        <p id="main-subheading">Your financial overview</p>
+      </div>
+      <div class="header-actions">
+        <button id="add-tx-btn" class="btn btn-primary" aria-label="Add new transaction">
+          + Add Transaction
+        </button>
+        <button id="hamburger-btn" class="hamburger" aria-label="Toggle sidebar menu">☰</button>
+      </div>
+    </header>
+
+    <!-- Scrollable content -->
+    <div class="content-area">
+
+      <!-- ── Section: Dashboard Overview ── -->
+      <section id="section-dashboard" class="content-section" aria-label="Dashboard overview">
+
+        <!-- Stats row -->
+        <div class="stats-grid">
+          <div class="stat-card income">
+            <div class="stat-icon" aria-hidden="true">💰</div>
+            <div class="stat-label">Total Income</div>
+            <div class="stat-value" id="stat-income">₹0</div>
+          </div>
+          <div class="stat-card expense">
+            <div class="stat-icon" aria-hidden="true">💸</div>
+            <div class="stat-label">Total Expenses</div>
+            <div class="stat-value" id="stat-expense">₹0</div>
+          </div>
+          <div class="stat-card balance">
+            <div class="stat-icon" aria-hidden="true">⚖️</div>
+            <div class="stat-label">Net Balance</div>
+            <div class="stat-value" id="stat-balance">₹0</div>
+          </div>
+        </div>
+
+        <!-- Charts grid -->
+        <div class="charts-grid">
+          <!-- Doughnut: expenses by category -->
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Expenses by Category</div>
+                <div class="panel-subtitle">Where your money goes</div>
+              </div>
+              <div class="time-filter" role="group" aria-label="Time range for category chart">
+                <button class="time-btn active" data-chart="cat" data-range="1m" id="cat-1m-btn">1M</button>
+                <button class="time-btn" data-chart="cat" data-range="3m" id="cat-3m-btn">3M</button>
+                <button class="time-btn" data-chart="cat" data-range="1y" id="cat-1y-btn">1Y</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="chart-container">
+                <canvas id="chart-category" aria-label="Expense breakdown by category"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bar: income vs expense by month -->
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Income vs Expenses</div>
+                <div class="panel-subtitle">Monthly comparison</div>
+              </div>
+              <div class="time-filter" role="group" aria-label="Time range for monthly chart">
+                <button class="time-btn active" data-chart="bar" data-range="3m" id="bar-3m-btn">3M</button>
+                <button class="time-btn" data-chart="bar" data-range="6m" id="bar-6m-btn">6M</button>
+                <button class="time-btn" data-chart="bar" data-range="1y" id="bar-1y-btn">1Y</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="chart-container">
+                <canvas id="chart-monthly" aria-label="Monthly income vs expense comparison"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent transactions preview -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Recent Transactions</div>
+              <div class="panel-subtitle">Last 5 entries</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('nav-transactions').click()">
+              View all →
+            </button>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div class="tx-table-wrapper">
+              <table class="tx-table" aria-label="Recent transactions">
+                <thead>
+                  <tr>
+                    <th>Transaction</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="tx-table-body"></tbody>
+              </table>
+              <div id="tx-empty-state" class="empty-state" hidden>
+                <div class="empty-icon" aria-hidden="true">🪙</div>
+                <h3>No transactions yet</h3>
+                <p>Add your first transaction to get started</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── Section: Transactions ── -->
+      <section id="section-transactions" class="content-section" aria-label="All transactions" hidden>
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">All Transactions</div>
+              <div class="panel-subtitle">Your complete transaction history</div>
+            </div>
+          </div>
+          <div class="panel-body" style="padding: var(--sp-4) var(--sp-6)">
+            <!-- Filters + Search -->
+            <div class="tx-filters" role="group" aria-label="Transaction filters">
+              <button class="filter-pill active" data-filter="all" aria-pressed="true">All</button>
+              <button class="filter-pill" data-filter="income" aria-pressed="false">Income</button>
+              <button class="filter-pill" data-filter="expense" aria-pressed="false">Expenses</button>
+              <div class="search-input" role="search">
+                <span aria-hidden="true">🔍</span>
+                <input
+                  id="tx-search"
+                  type="text"
+                  placeholder="Search transactions…"
+                  aria-label="Search transactions"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="tx-table-wrapper">
+            <table class="tx-table" id="all-tx-table" aria-label="All transactions list">
+              <thead>
+                <tr>
+                  <th>Transaction</th>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                  <th>Method</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="all-tx-table-body"></tbody>
+            </table>
+            <div id="all-tx-empty-state" class="empty-state" hidden>
+              <div class="empty-icon" aria-hidden="true">🪙</div>
+              <h3>No transactions found</h3>
+              <p>Try adjusting your filters or add a new transaction</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Section: AI Summary ── -->
+      <section id="section-ai" class="content-section" aria-label="AI financial summary" hidden>
+        <div class="panel ai-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">🤖 AI Financial Insights</div>
+              <div class="panel-subtitle">Powered by Google Gemini</div>
+            </div>
+            <button class="ai-btn" id="ai-summary-btn" aria-label="Generate AI financial summary">
+              <span>✨</span> Get AI Summary
+            </button>
+          </div>
+          <div class="panel-body">
+            <div id="ai-response-area">
+              <div class="ai-placeholder">
+                <div class="ai-emoji" aria-hidden="true">🧠</div>
+                <p>Click <strong>Get AI Summary</strong> to get personalised insights about your spending patterns.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Section: Reports ── -->
+      <section id="section-reports" class="content-section" aria-label="Monthly reports" hidden>
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">📄 Monthly Report</div>
+              <div class="panel-subtitle">Download a PDF summary of any month</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="report-controls">
+              <div class="form-group">
+                <label class="form-label" for="report-month">Select Month</label>
+                <input
+                  id="report-month"
+                  class="form-input"
+                  type="month"
+                  style="width:auto"
+                  aria-label="Select month for report"
+                />
+              </div>
+              <button id="download-pdf-btn" class="btn btn-primary" style="margin-top:auto" aria-label="Download PDF report">
+                ⬇ Download PDF
+              </button>
+            </div>
+            <div id="report-preview" style="margin-top: var(--sp-6)"></div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /content-area -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- ═══════════════════════════════ ADD/EDIT MODAL ═══════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Add Transaction</h2>
+      <button id="modal-close" class="modal-close" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="tx-form" class="modal-form" novalidate>
+
+        <!-- Income / Expense toggle -->
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <div class="type-toggle" role="group" aria-label="Transaction type">
+            <button type="button" class="type-toggle-btn active-expense" id="type-expense">💸 Expense</button>
+            <button type="button" class="type-toggle-btn" id="type-income">💰 Income</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="form-title">Title *</label>
+            <input id="form-title" class="form-input" type="text" placeholder="e.g. Grocery run" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-amount">Amount (₹) *</label>
+            <input id="form-amount" class="form-input" type="number" min="1" placeholder="500" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="form-category">Category *</label>
+            <select id="form-category" class="form-select" required>
+              <option value="" disabled selected>Select category</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-payment">Payment Method</label>
+            <select id="form-payment" class="form-select">
+              <option value="" disabled selected>Select method</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="form-description">Description</label>
+          <input id="form-description" class="form-input" type="text" placeholder="Optional note…" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="form-location">Location</label>
+            <input id="form-location" class="form-input" type="text" placeholder="e.g. BigBazaar, Mumbai" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-date">Date & Time</label>
+            <input id="form-date" class="form-input" type="datetime-local" />
+          </div>
+        </div>
+
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" id="modal-cancel-btn" onclick="document.getElementById('modal-close').click()">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" id="modal-submit-btn" form="tx-form">
+        Save Transaction
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>
