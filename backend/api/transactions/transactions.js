@@ -6,50 +6,92 @@ const authenticateToken = require("../auth/authenticateToken");
 const { user } = require("pg/lib/defaults.js");
 
 router.get("/", authenticateToken, async (req, res) => {
-  const { page } = req.query;
   const user_id = req.user_id;
+  const { categoryId, page = 1 } = req.query;
+
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 LIMIT 20 OFFSET $2", [
-      user_id, (page-1) * 20
-    ]);
-    res.status(200).json({status: "success", message: result.rows});
+    let sql = `
+      SELECT t.transaction_id, t.amount, t.title, c.name AS category_name
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.category_id
+      WHERE t.user_id = $1
+    `;
+    const params = [user_id];
+
+    if (categoryId) {
+      params.push(categoryId);
+      sql += ` AND t.category_id = $2`;
+    }
+
+    sql += ` ORDER BY t.transaction_time DESC LIMIT 20 OFFSET $${params.length + 1}`;
+    params.push((page-1) * 20);
+
+    const result = await db.pool.query(sql, params);
+    res.status(200).json({ status: "success", data: result.rows });
+
   } catch (error) {
-    console.error("Error making database query");
-    res.status(500).json({ error: "Error making database query" });
+    console.error(error);
+    res.status(500).json({ error: "Database error" });
   }
 });
 
 router.get("/expense", authenticateToken, async(req, res) =>{
-  const { page } = req.query;
   const user_id = req.user_id;
+  const { categoryId, page = 1 } = req.query;
+
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = true LIMIT 20 OFFSET $2", [
-      user_id, (page-1) * 20
-    ]);
-    res.status(200).json({
-      status: "success",
-      message: result.rows
-    });
+    let sql = `
+      SELECT t.transaction_id, t.amount, t.title, c.name AS category_name
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.category_id
+      WHERE t.user_id = $1 AND t.expense = true
+    `;
+    const params = [user_id];
+
+    if (categoryId) {
+      params.push(categoryId);
+      sql += ` AND t.category_id = $2`;
+    }
+
+    sql += ` ORDER BY t.transaction_time DESC LIMIT 20 OFFSET $${params.length + 1}`;
+    params.push((page-1) * 20);
+
+    const result = await db.pool.query(sql, params);
+    res.status(200).json({ status: "success", data: result.rows });
+
   } catch (error) {
-    console.error("Error making database call");
-    res.status(500).json({error: "Error making database call"});
+    console.error(error);
+    res.status(500).json({ error: "Database error" });
   }
 } );
 
 router.get("/income", authenticateToken, async(req, res) =>{
-  const { page } = req.query;
   const user_id = req.user_id;
+  const { categoryId, page = 1 } = req.query;
+
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = false LIMIT 20 OFFSET $2", [
-      user_id, (page-1) * 20
-    ]);
-    res.status(200).json({
-      status: "success",
-      message: result.rows
-    });
+    let sql = `
+      SELECT t.transaction_id, t.amount, t.title, c.name AS category_name
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.category_id
+      WHERE t.user_id = $1 and t.expense = false
+    `;
+    const params = [user_id];
+
+    if (categoryId) {
+      params.push(categoryId);
+      sql += ` AND t.category_id = $2`;
+    }
+
+    sql += ` ORDER BY t.transaction_time DESC LIMIT 20 OFFSET $${params.length + 1}`;
+    params.push((page-1) * 20);
+
+    const result = await db.pool.query(sql, params);
+    res.status(200).json({ status: "success", data: result.rows });
+
   } catch (error) {
-    console.error("Error making database call");
-    res.status(500).json({error: "Error making database call"});
+    console.error(error);
+    res.status(500).json({ error: "Database error" });
   }
 } );
 
