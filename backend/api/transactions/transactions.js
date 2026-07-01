@@ -167,4 +167,61 @@ router.delete("/delete", authenticateToken, async (req, res) => {
   }
 });
 
+router.post("/addLookups", authenticateToken, async(req, res) => {
+  const { field } = req.query;
+  const { name } = req.body;
+  const user_id = req.user_id;
+
+  const allowedFields = {
+    category: {
+      tableName: "categories",
+      idColumn: "category_id"
+    }, 
+    paymentMethod: {
+      tableName: "paymentmethods",
+      idColumn: "method_id"
+    }
+  }
+
+  const targetConfig = allowedFields[field];
+  if (!targetConfig) {
+    return res.status(400).json({
+      error: "Invalid field parameter. Must be 'category' or 'paymentMethod'."
+    });
+  }
+  
+  if (!name || typeof name !== "string" || name.trim() === "") {
+    return res.status(400).json({ 
+      error: "A valid name is required." 
+    });
+  }
+
+  try {
+    const query = `
+      INSERT INTO "${targetConfig.tableName}" (user_id, name)
+      VALUES ($1, $2)
+      RETURNING ${targetConfig.idColumn} AS id, name
+    `;
+
+    const result = await db.pool.query(query, [user_id, name.trim()]);
+    res.status(201).json({
+      status: "success",
+      message: `${field} added successfully.`,
+      data: result.rows[0]
+    });
+  } catch(error) {
+
+    if (error.code === '23505') {
+      return res.status(409).json({
+        error: "Duplicate Entry",
+        message: `You already have a ${field} named '${name.trim()}'.`
+      });
+    }
+
+    console.error(`Error adding lookup for ${field}:`, error);
+    res.status(500).json({ error: "Error making database query" });
+  }
+
+});
+
 module.exports = router;
