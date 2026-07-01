@@ -6,10 +6,11 @@ const authenticateToken = require("../auth/authenticateToken");
 const { user } = require("pg/lib/defaults.js");
 
 router.get("/", authenticateToken, async (req, res) => {
+  const { page } = req.query;
   const user_id = req.user_id;
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1", [
-      user_id,
+    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 LIMIT 20 OFFSET $2", [
+      user_id, (page-1) * 20
     ]);
     res.status(200).json({status: "success", message: result.rows});
   } catch (error) {
@@ -19,9 +20,12 @@ router.get("/", authenticateToken, async (req, res) => {
 });
 
 router.get("/expense", authenticateToken, async(req, res) =>{
+  const { page } = req.query;
   const user_id = req.user_id;
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = true", [user_id]);
+    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = true LIMIT 20 OFFSET $2", [
+      user_id, (page-1) * 20
+    ]);
     res.status(200).json({
       status: "success",
       message: result.rows
@@ -33,9 +37,12 @@ router.get("/expense", authenticateToken, async(req, res) =>{
 } );
 
 router.get("/income", authenticateToken, async(req, res) =>{
+  const { page } = req.query;
   const user_id = req.user_id;
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = false", [user_id]);
+    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = false LIMIT 20 OFFSET $2", [
+      user_id, (page-1) * 20
+    ]);
     res.status(200).json({
       status: "success",
       message: result.rows
