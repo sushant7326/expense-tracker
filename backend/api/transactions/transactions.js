@@ -7,7 +7,7 @@ const { user } = require("pg/lib/defaults.js");
 
 router.get("/", authenticateToken, async (req, res) => {
   const user_id = req.user_id;
-  const { categoryId, paymentMethodId } = req.query;
+  const { categoryId, paymentMethodId, startDate, endDate } = req.query;
   
   const page = parseInt(req.query.page, 10) || 1;
 
@@ -31,6 +31,16 @@ router.get("/", authenticateToken, async (req, res) => {
       sql += ` AND t.payment_method_id = $${params.length}`;
     }
 
+    if (startDate) {
+      params.push(startDate);
+      sql += ` AND t.transaction_time >= $${params.length}`;
+    }
+
+    if (endDate) {
+      params.push(`${endDate} 23:59:59`);
+      sql += ` AND t.transaction_time <= $${params.length}`;
+    }
+
     const limit = 20;
     const offset = (page - 1) * limit;
 
@@ -49,7 +59,7 @@ router.get("/", authenticateToken, async (req, res) => {
 
 router.get("/expense", authenticateToken, async(req, res) =>{
   const user_id = req.user_id;
-  const { categoryId, paymentMethodId } = req.query;
+  const { categoryId, paymentMethodId, startDate, endDate } = req.query;
   
   const page = parseInt(req.query.page, 10) || 1;
 
@@ -73,6 +83,16 @@ router.get("/expense", authenticateToken, async(req, res) =>{
       sql += ` AND t.payment_method_id = $${params.length}`;
     }
 
+    if (startDate) {
+      params.push(startDate);
+      sql += ` AND t.transaction_time >= $${params.length}`;
+    }
+
+    if (endDate) {
+      params.push(`${endDate} 23:59:59`);
+      sql += ` AND t.transaction_time <= $${params.length}`;
+    }
+
     const limit = 20;
     const offset = (page - 1) * limit;
 
@@ -91,7 +111,7 @@ router.get("/expense", authenticateToken, async(req, res) =>{
 
 router.get("/income", authenticateToken, async(req, res) =>{
   const user_id = req.user_id;
-  const { categoryId, paymentMethodId } = req.query;
+  const { categoryId, paymentMethodId, startDate, endDate } = req.query;
   
   const page = parseInt(req.query.page, 10) || 1;
 
@@ -113,6 +133,16 @@ router.get("/income", authenticateToken, async(req, res) =>{
     if (paymentMethodId) {
       params.push(paymentMethodId);
       sql += ` AND t.payment_method_id = $${params.length}`;
+    }
+
+    if (startDate) {
+      params.push(startDate);
+      sql += ` AND t.transaction_time >= $${params.length}`;
+    }
+
+    if (endDate) {
+      params.push(`${endDate} 23:59:59`);
+      sql += ` AND t.transaction_time <= $${params.length}`;
     }
 
     const limit = 20;
