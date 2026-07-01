@@ -7,44 +7,129 @@ const { user } = require("pg/lib/defaults.js");
 
 router.get("/", authenticateToken, async (req, res) => {
   const user_id = req.user_id;
+  const { categoryId, paymentMethodId } = req.query;
+  
+  const page = parseInt(req.query.page, 10) || 1;
+
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1", [
-      user_id,
-    ]);
-    res.status(200).json({status: "success", message: result.rows});
+    let sql = `
+      SELECT t.transaction_id, t.amount, t.title, c.name AS category_name, p.name as payment_method
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.category_id
+      LEFT JOIN paymentMethods p ON t.payment_method_id = p.method_id
+      WHERE t.user_id = $1
+    `;
+    const params = [user_id];
+
+    if (categoryId) {
+      params.push(categoryId);
+      sql += ` AND t.category_id = $${params.length}`;
+    }
+
+    if (paymentMethodId) {
+      params.push(paymentMethodId);
+      sql += ` AND t.payment_method_id = $${params.length}`;
+    }
+
+    const limit = 20;
+    const offset = (page - 1) * limit;
+
+    sql += ` ORDER BY t.transaction_time DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await db.pool.query(sql, params);
+    
+    res.status(200).json({ status: "success", data: result.rows });
+
   } catch (error) {
-    console.error("Error making database query");
-    res.status(500).json({ error: "Error making database query" });
+    console.error(error);
+    res.status(500).json({ error: "Database error" });
   }
 });
 
 router.get("/expense", authenticateToken, async(req, res) =>{
   const user_id = req.user_id;
+  const { categoryId, paymentMethodId } = req.query;
+  
+  const page = parseInt(req.query.page, 10) || 1;
+
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = true", [user_id]);
-    res.status(200).json({
-      status: "success",
-      message: result.rows
-    });
+    let sql = `
+      SELECT t.transaction_id, t.amount, t.title, c.name AS category_name, p.name as payment_method
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.category_id
+      LEFT JOIN paymentMethods p ON t.payment_method_id = p.method_id
+      WHERE t.user_id = $1 and t.expense = true
+    `;
+    const params = [user_id];
+
+    if (categoryId) {
+      params.push(categoryId);
+      sql += ` AND t.category_id = $${params.length}`;
+    }
+
+    if (paymentMethodId) {
+      params.push(paymentMethodId);
+      sql += ` AND t.payment_method_id = $${params.length}`;
+    }
+
+    const limit = 20;
+    const offset = (page - 1) * limit;
+
+    sql += ` ORDER BY t.transaction_time DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await db.pool.query(sql, params);
+    
+    res.status(200).json({ status: "success", data: result.rows });
+
   } catch (error) {
-    console.error("Error making database call");
-    res.status(500).json({error: "Error making database call"});
+    console.error(error);
+    res.status(500).json({ error: "Database error" });
   }
-} );
+});
 
 router.get("/income", authenticateToken, async(req, res) =>{
   const user_id = req.user_id;
+  const { categoryId, paymentMethodId } = req.query;
+  
+  const page = parseInt(req.query.page, 10) || 1;
+
   try {
-    const result = await db.pool.query("SELECT * FROM transactions WHERE user_id = $1 and expense = false", [user_id]);
-    res.status(200).json({
-      status: "success",
-      message: result.rows
-    });
+    let sql = `
+      SELECT t.transaction_id, t.amount, t.title, c.name AS category_name, p.name as payment_method
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.category_id
+      LEFT JOIN paymentMethods p ON t.payment_method_id = p.method_id
+      WHERE t.user_id = $1 and t.expense = false
+    `;
+    const params = [user_id];
+
+    if (categoryId) {
+      params.push(categoryId);
+      sql += ` AND t.category_id = $${params.length}`;
+    }
+
+    if (paymentMethodId) {
+      params.push(paymentMethodId);
+      sql += ` AND t.payment_method_id = $${params.length}`;
+    }
+
+    const limit = 20;
+    const offset = (page - 1) * limit;
+
+    sql += ` ORDER BY t.transaction_time DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await db.pool.query(sql, params);
+    
+    res.status(200).json({ status: "success", data: result.rows });
+
   } catch (error) {
-    console.error("Error making database call");
-    res.status(500).json({error: "Error making database call"});
+    console.error(error);
+    res.status(500).json({ error: "Database error" });
   }
-} );
+});
 
 router.post("/add", authenticateToken, async (req, res) => {
   const user_id = req.user_id;
