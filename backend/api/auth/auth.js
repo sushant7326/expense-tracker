@@ -54,7 +54,6 @@ router.post("/login", async (req, res) => {
       );
       if (!is_valid)
         return res.status(401).json({ error: "Invalid username or password!" });
-      console.log("before jwt creation code");
       const token = jwt.sign(
         {
           user_id: user.rows[0].user_id,
@@ -104,7 +103,6 @@ router.put("/change-password", authenticateToken, async (req, res) => {
 router.delete("/delete-user", authenticateToken, async (req, res) => {
   const { password } = req.body;
   const user_id = req.user_id;
-  console.log(user_id);
   try {
     const response = await db.pool.query(
       "SELECT password_hash FROM users WHERE user_id = $1",
